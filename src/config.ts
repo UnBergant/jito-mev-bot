@@ -8,7 +8,7 @@ export const getConfig = () => {
     return {
         privateKey: getRequiredEnvVar('PRIVATE_KEY_BASE58'),
         rpcUrl: getRequiredEnvVar('RPC_URL'),
-        jitoBlockEngineUrl: getRequiredEnvVar('JITO_BLOCK_ENGINE_URL'),
+        jitoBlockEngineUrl: process.env['JITO_BLOCK_ENGINE_URL'] || '',
         jitoRpcUrl: getRequiredEnvVar('JITO_RPC_URL'),
         heliusEndpoint: getRequiredEnvVar('HELIUS_ENDPOINT'),
         heliusApiKey: getRequiredEnvVar('HELIUS_API_KEY'),
