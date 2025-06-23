@@ -1,14 +1,15 @@
 import { SubscribeUpdate } from '@triton-one/yellowstone-grpc';
 import { ConfigGlobal } from '../types';
-import { LAMPORTS_IN_SOL, TRADER_ACTION } from '../constants';
-import { Connection } from '@solana/web3.js';
+import { LAMPORTS_IN_SOL, TRADE_DIRECTION } from '../constants';
+import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import bs58 from 'bs58';
+import { trigger } from './callbacks';
 
 type ILogTx = {
     data: SubscribeUpdate;
     config: ConfigGlobal;
     delta: number;
-    tradeAction: TRADER_ACTION;
+    tradeAction: TRADE_DIRECTION;
 };
 
 export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
@@ -19,7 +20,7 @@ export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
     ) {
         console.log(data.createdAt, '🔮 no txs yet');
         return;
-    } // copy paste for type guard
+    } // copypaste for type guard
     const {
         transaction: {
             transaction: { message },
@@ -28,6 +29,19 @@ export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
         },
         slot,
     } = data.transaction;
+
+    const triggerSize = config.triggerSizeSol * LAMPORTS_PER_SOL;
+
+    if (
+        !trigger({
+            action: tradeAction,
+            amount: delta,
+            triggerSize,
+            config,
+        })
+    ) {
+        return;
+    }
 
     const { accountKeys } = message;
 
@@ -46,16 +60,11 @@ export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
     console.log(data.createdAt, `📨 txHash: ${bs58.encode(signature)}`);
     // console.log(data.createdAt, `📨 Tx message:`, message);
     // console.log(data.createdAt, `📨 Tx meta:`, meta);
-    // console.log(
-    //     data.createdAt,
-    //     `📨 Tx transaction extended:`,
-    //     data.transaction,
-    // );
-    // console.log(data.createdAt, `📨 Tx instructions:`, instructions);
-    // console.log(data.createdAt, `🏦 preBalances: ${meta.preBalances}`);
-    // console.log(data.createdAt, `🏦 postBalances: ${meta.postBalances}`);
+    // console.log(data.createdAt, `📨 Tx message:`, message);
+
     const deltaSol = delta / LAMPORTS_IN_SOL;
-    const tradeSign = tradeAction === TRADER_ACTION.BUY ? '🟢 Buy' : '🔴 Sell';
+    const tradeSign =
+        tradeAction === TRADE_DIRECTION.BUY ? '🟢 Buy' : '🔴 Sell';
     console.log(
         data.createdAt,
         `🏦 Delta (Sol): ${Math.abs(+deltaSol.toFixed(4))} ${tradeSign}`,

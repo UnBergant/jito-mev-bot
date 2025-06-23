@@ -1,29 +1,28 @@
-import { IGetTipsIx } from '../types';
+import { GetTipsIxArgs, TIPS_PERCENTILES } from '../types';
 import { PublicKey, SystemProgram } from '@solana/web3.js';
+import { URLS } from '../constants';
 
-const getTipsIx = async ({
-    payer,
-    tipLamports,
-    jClient,
-    searcherClient,
-}: IGetTipsIx) => {
-    // const sAccount = await searcherClient.getTipAccounts();
-    // console.log({ sAccount });
-    // const jAccounts = await jClient.getTipAccounts(); // Do n
-    // console.log({ jAccounts });
-    //
-    // const tipAccount = await jClient.getRandomTipAccount(); // Do not use because ratelimits
-    // console.log({ tipAccount });
+const getTipsAmount = async (): Promise<TIPS_PERCENTILES> => {
+    const response = await fetch(URLS.jitoTips);
+
+    if (!response.ok) {
+        throw new Error(`❌ Ошибка: ${response.status} ${response.statusText}`);
+    }
+    const tipsPercentile = await response.json();
+    return tipsPercentile[0];
+};
+
+const getTipsIx = ({
+    payerKey,
+    tipsConfig: { tipsLamports, tipsKey },
+}: GetTipsIxArgs) => {
+    console.log('🫰 Tips to pay (lamports):', tipsLamports);
 
     return SystemProgram.transfer({
-        fromPubkey: payer.publicKey,
-        toPubkey: new PublicKey('ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt'),
-        lamports: tipLamports,
+        fromPubkey: payerKey,
+        toPubkey: tipsKey,
+        lamports: tipsLamports,
     });
 };
 
-const getTipLamports = () => {
-    return 3000;
-};
-
-export { getTipLamports, getTipsIx };
+export { getTipsIx, getTipsAmount };

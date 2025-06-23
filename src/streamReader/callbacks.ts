@@ -1,22 +1,50 @@
-import { DEX, LAMPORTS_IN_SOL, TRADER_ACTION } from '../constants';
+import { LAMPORTS_IN_SOL, TRADE_DIRECTION } from '../constants';
 import { SubscribeUpdate } from '@triton-one/yellowstone-grpc';
-import bs58 from 'bs58';
 import { ConfigGlobal } from '../types';
-import { emitter, EVENT, TradeInfo } from '../eventBus';
+import { emitter, EVENT } from '../eventBus';
 import { getTradeInfo, getTxInfo } from './tx';
+
+let running = false;
+
+type TriggerArgs = {
+    action: TRADE_DIRECTION | undefined;
+    amount: number | undefined;
+    triggerSize: number;
+    config: ConfigGlobal;
+};
+
+export const trigger = ({
+    action,
+    amount,
+    triggerSize,
+    config,
+}: TriggerArgs) => {
+    return action === config.TRIGGER_ACTION && amount && amount >= triggerSize;
+};
 
 export const getHeliusCallbacks = (config: ConfigGlobal) => {
     const onData = async (data: SubscribeUpdate) => {
+        if (running) return;
         console.log('------------------------');
-        const triggerSizeLamports = config.triggerSize * LAMPORTS_IN_SOL;
+        const triggerSizeLamports = config.triggerSizeSol * LAMPORTS_IN_SOL;
         const txInfo = getTxInfo(data, config);
+
         switch (true) {
             case !txInfo?.txAmount:
                 break;
-            case txInfo?.action === TRADER_ACTION.BUY &&
-                txInfo?.txAmount >= triggerSizeLamports:
-                const txAmountSol = txInfo?.txAmount / LAMPORTS_IN_SOL;
-                console.log(`⬇️ To sell (Sol): ${txAmountSol * config.X}`);
+
+            case trigger({
+                action: txInfo?.action,
+                amount: txInfo?.txAmount,
+                triggerSize: triggerSizeLamports,
+                config,
+            }):
+                running = true;
+                const txAmountSol = txInfo.txAmount / LAMPORTS_IN_SOL;
+                console.log(
+                    txInfo.createdAt,
+                    `❗️ TRIGGERED To ${config.MODE} (Sol): ${txAmountSol * config.X}`,
+                );
 
                 const tradeInfo = getTradeInfo({ txInfo, config });
 

@@ -1,10 +1,7 @@
-import { ConfigGlobal } from '../types';
+import { ConfigGlobal, TradeInfo } from '../types';
 import { SubscribeUpdate } from '@triton-one/yellowstone-grpc';
-import bs58 from 'bs58';
-import { DEX, LAMPORTS_IN_SOL, TRADER_ACTION } from '../constants';
-import { TradeInfo } from '../eventBus';
-import { Connection } from '@solana/web3.js';
 import { logTx } from './log';
+import { TRADE_DIRECTION } from '../constants';
 
 type ITxInfo = NonNullable<ReturnType<typeof getTxInfo>>;
 type IGetTradeInfo = {
@@ -32,24 +29,21 @@ export const getTxInfo = (data: SubscribeUpdate, config: ConfigGlobal) => {
     }
 
     const delta = +meta.postBalances[0] - +meta.preBalances[0];
-    const tradeAction = delta < 0 ? TRADER_ACTION.BUY : TRADER_ACTION.SELL;
-    logTx({ data, config, delta, tradeAction });
+    const tradeAction = delta < 0 ? TRADE_DIRECTION.BUY : TRADE_DIRECTION.SELL;
+    const deltaAbs = Math.abs(delta);
+    logTx({ data, config, delta: deltaAbs, tradeAction });
 
     return {
-        txAmount: Math.abs(delta),
+        txAmount: deltaAbs,
         action: tradeAction,
         tx: data.transaction,
+        createdAt: data?.createdAt ?? new Date(),
     };
 };
 
 export const getTradeInfo = ({ txInfo, config }: IGetTradeInfo): TradeInfo => {
     return {
         POOL: config.POOL,
-        trigger: {
-            action: TRADER_ACTION.BUY,
-            amountL: txInfo.txAmount,
-            tx: txInfo.tx,
-        },
-        DEX: DEX.RAYDIUM,
+        trigger: txInfo,
     };
 };

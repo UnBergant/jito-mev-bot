@@ -8,7 +8,11 @@
     "start": "ts-node src/index.ts"
   },
   "dependencies": {
+    "@pump-fun/pump-swap-sdk": "^0.0.1-beta.36",
+    "@raydium-io/raydium-sdk-v2": "^0.1.139-alpha",
+    "@solana-developers/helpers": "^2.8.1",
     "@solana/web3.js": "^1.98.2",
+    "bn.js": "^5.2.2",
     "dotenv": "^16.5.0",
     "helius-laserstream": "^0.0.7",
     "jito-js-rpc": "^0.2.2",
@@ -16,6 +20,8 @@
     "nanoevents": "^9.1.0"
   },
   "devDependencies": {
+    "@types/bn.js": "^5.2.0",
+    "bn.js-typings": "^1.0.1",
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"

@@ -11,12 +11,11 @@ const config = getConfig();
 const main = async () => {
     let unsubEvents: Unsubscribe = () => {};
     try {
-        unsubEvents = await jito.init({ config });
+        unsubEvents = (await jito.init({ config })) as Unsubscribe;
         await helius.setupSubscriptions({ config });
     } catch (e) {
+        unsubEvents();
         console.error('Error sending bundle:', e);
-    } finally {
-        unsubEvents && unsubEvents();
     }
 };
 

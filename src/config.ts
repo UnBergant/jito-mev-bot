@@ -1,3 +1,5 @@
+import { TRADE_DIRECTION } from './constants';
+
 const getRequiredEnvVar = (key: string): string => {
     const value = process.env[key];
     if (!value) throw new Error(`❌ Missing required env variable: ${key}`);
@@ -10,14 +12,17 @@ export const getConfig = () => {
         rpcUrl: getRequiredEnvVar('RPC_URL'),
         jitoBlockEngineUrl: process.env['JITO_BLOCK_ENGINE_URL'] || '',
         jitoRpcUrl: getRequiredEnvVar('JITO_RPC_URL'),
+        jitoTipsAddress: getRequiredEnvVar('JITO_TIPS_ADDRESS'),
         heliusEndpoint: getRequiredEnvVar('HELIUS_ENDPOINT'),
         heliusApiKey: getRequiredEnvVar('HELIUS_API_KEY'),
         bundleTransactionLimit: parseInt(
             getRequiredEnvVar('BUNDLE_TRANSACTION_LIMIT'),
             5,
         ),
-        triggerSize: 5, // SOL per transaction
-        X: 0.01, // sell proportion amount
-        POOL: '8kGaHesGdvv3GC4kYX9bYMFnoqcCGd4KrtnpLAm6dDVD',
+        triggerSizeSol: parseFloat(getRequiredEnvVar('TRIGGERED_SIZE_SOL')), // SOL per transaction
+        X: parseFloat(getRequiredEnvVar('X')), // sell proportion amount
+        POOL: getRequiredEnvVar('POOL'),
+        TRIGGER_ACTION: TRADE_DIRECTION.BUY,
+        MODE: TRADE_DIRECTION.SELL,
     };
 };

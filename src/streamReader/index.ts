@@ -15,6 +15,7 @@ async function setupSubscriptions({ config }: ISetupSubscriptions) {
     const { onData, onError } = getHeliusCallbacks(config);
 
     await subscribe(streamConfig, requestConfig, onData, onError);
+    console.log('👀 StreamReader initialized');
 }
 
 export { setupSubscriptions };
