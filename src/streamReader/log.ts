@@ -1,9 +1,10 @@
 import { SubscribeUpdate } from '@triton-one/yellowstone-grpc';
 import { ConfigGlobal } from '../types';
-import { LAMPORTS_IN_SOL, TRADE_DIRECTION } from '../constants';
+import { TRADE_DIRECTION } from '../constants';
 import { Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { trigger } from './callbacks';
+import { getTokenChangesForOwner } from '../utils/tx';
 
 type ILogTx = {
     data: SubscribeUpdate;
@@ -13,6 +14,7 @@ type ILogTx = {
 };
 
 export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
+    // copypaste for type guard
     if (
         !data?.transaction?.transaction?.transaction?.message?.instructions ||
         !data?.transaction?.transaction?.meta ||
@@ -20,7 +22,7 @@ export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
     ) {
         console.log(data.createdAt, '🔮 no txs yet');
         return;
-    } // copypaste for type guard
+    }
     const {
         transaction: {
             transaction: { message },
@@ -55,14 +57,24 @@ export const logTx = ({ data, config, delta, tradeAction }: ILogTx) => {
             console.log(data.createdAt, `🔗 Building slot: ${slot}`);
         });
 
+    console.log(data.createdAt, `🚨 Action is triggered`);
     console.log(data.createdAt, `🔗 Building slot: ${slot}`);
     console.log(data.createdAt, `💳 Account: ${bs58.encode(accountKeys[0])}`);
     console.log(data.createdAt, `📨 txHash: ${bs58.encode(signature)}`);
     // console.log(data.createdAt, `📨 Tx message:`, message);
     // console.log(data.createdAt, `📨 Tx meta:`, meta);
-    // console.log(data.createdAt, `📨 Tx message:`, message);
 
-    const deltaSol = delta / LAMPORTS_IN_SOL;
+    // const deltas = getTokenChangesForOwner(
+    //     bs58.encode(accountKeys[0]),
+    //     meta.preTokenBalances,
+    //     meta.postTokenBalances,
+    // );
+    //
+    // Object.entries(deltas).forEach(([key, value]) =>
+    //     console.log(`🎟 Token: ${key}, 🔄 Delta: ${value}`),
+    // );
+
+    const deltaSol = delta / LAMPORTS_PER_SOL;
     const tradeSign =
         tradeAction === TRADE_DIRECTION.BUY ? '🟢 Buy' : '🔴 Sell';
     console.log(

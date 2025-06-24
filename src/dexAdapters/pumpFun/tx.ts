@@ -8,7 +8,6 @@ import {
 } from '@solana/web3.js';
 import { getTipsIx } from '../../jito/tips';
 import { getSimulationComputeUnits } from '@solana-developers/helpers';
-import { CU_PRICE } from '../../constants';
 
 export const getTx = async (args: GetPFTxArgs) => {
     const {
@@ -50,13 +49,15 @@ export const getTx = async (args: GetPFTxArgs) => {
     // For example create global context with value for this type of requests. Because it is +- the same result
     // let units = await getSimulationComputeUnits(connection, ixs, payerKey, []);
     // units = units ?? 1_400_000;
-    let units = 400_000;
+    let units = 1_400_000;
 
     const unitsWithMargin = Math.ceil(units * 1.1);
 
     ixs.unshift(
         ComputeBudgetProgram.setComputeUnitLimit({ units: unitsWithMargin }),
-        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: CU_PRICE }),
+        ComputeBudgetProgram.setComputeUnitPrice({
+            microLamports: config.CU_PRICE,
+        }),
     );
 
     const messageV0 = new TransactionMessage({

@@ -2,8 +2,6 @@ export const URLS = {
     jitoTips: 'https://bundles.jito.wtf/api/v1/bundles/tip_floor',
 };
 
-export const LAMPORTS_IN_SOL = 1_000_000_000;
-
 //https://docs.raydium.io/raydium/protocol/developers/addresses
 export enum DEX {
     RAYDIUM_ST_AMM = '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
@@ -21,5 +19,3 @@ export enum TRADE_DIRECTION {
     SELL = 'sell',
     BUY = 'buy',
 }
-
-export const CU_PRICE = 50_000;

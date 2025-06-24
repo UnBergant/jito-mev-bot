@@ -1,8 +1,9 @@
-import { LAMPORTS_IN_SOL, TRADE_DIRECTION } from '../constants';
+import { TRADE_DIRECTION } from '../constants';
 import { SubscribeUpdate } from '@triton-one/yellowstone-grpc';
 import { ConfigGlobal } from '../types';
 import { emitter, EVENT } from '../eventBus';
 import { getTradeInfo, getTxInfo } from './tx';
+import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 
 let running = false;
 
@@ -26,7 +27,7 @@ export const getHeliusCallbacks = (config: ConfigGlobal) => {
     const onData = async (data: SubscribeUpdate) => {
         if (running) return;
         console.log('------------------------');
-        const triggerSizeLamports = config.triggerSizeSol * LAMPORTS_IN_SOL;
+        const triggerSizeLamports = config.triggerSizeSol * LAMPORTS_PER_SOL;
         const txInfo = getTxInfo(data, config);
 
         switch (true) {
@@ -40,7 +41,7 @@ export const getHeliusCallbacks = (config: ConfigGlobal) => {
                 config,
             }):
                 running = true;
-                const txAmountSol = txInfo.txAmount / LAMPORTS_IN_SOL;
+                const txAmountSol = txInfo.txAmount / LAMPORTS_PER_SOL;
                 console.log(
                     txInfo.createdAt,
                     `❗️ TRIGGERED To ${config.MODE} (Sol): ${txAmountSol * config.X}`,

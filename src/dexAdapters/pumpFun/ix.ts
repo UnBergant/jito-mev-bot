@@ -25,7 +25,7 @@ export const createIx = async ({
     config,
 }: CreateIxArgs) => {
     const pumpAmmSdk = new PumpAmmSdk(connection);
-    const slippage = config.SLIPPAGE * 100;
+    const slippage = Math.ceil(config.SLIPPAGE * 100);
 
     // maybe better to chance for raw instructions for optimization
     if (config.MODE === TRADE_DIRECTION.BUY) {

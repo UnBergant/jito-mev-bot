@@ -75,13 +75,15 @@ const createTx = async ({
         fixedSide: 'in',
         inputMint: mintIn.address,
         txVersion: TxVersion.V0,
-        txTipConfig: {
-            feePayer: payer.publicKey,
-            address: new PublicKey(
-                'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
-            ),
-            amount: new BN(tipsConfig.tipsLamports),
-        },
+        txTipConfig: tipsConfig?.tipsLamports
+            ? {
+                  feePayer: payer.publicKey,
+                  address: new PublicKey(
+                      'ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt',
+                  ),
+                  amount: new BN(tipsConfig?.tipsLamports!),
+              }
+            : undefined,
     });
 
     const tokenIn = 'So11111111111111111111111111111111111111112';
