@@ -39,26 +39,14 @@ export const init = async ({ config }: IJitoInit) => {
         owner: payer,
     });
 
-    // const poolInfo = await raydium.liquidity.getPoolInfoFromRpc({
-    //     poolId: new PublicKey(config.POOL).toBase58(),
-    // });
-
-    const wsolAta = await getAssociatedTokenAddress(
-        NATIVE_MINT,
-        payer.publicKey,
-    );
-    const ataInfo = await connection.getAccountInfo(wsolAta);
-    console.log('ATA:', ataInfo);
-
+    // TODO: make not blocking async by crone
     const recentBHash = await connection.getLatestBlockhash('confirmed');
 
     return emitter.on(EVENT.TRADE_TRIGGERED, async (tradeInfo) => {
         console.log('✅ TRIGGERED:', tradeInfo);
         // TODO: check tips asynchronously by chron
         const tipsLamports = Math.ceil(
-            tipsPercentiles.ema_landed_tips_50th_percentile *
-                LAMPORTS_PER_SOL *
-                30,
+            tipsPercentiles.landed_tips_95th_percentile * LAMPORTS_PER_SOL,
         );
 
         const tipsConfig: TipsConfig = {
@@ -66,7 +54,6 @@ export const init = async ({ config }: IJitoInit) => {
             tipsLamports: tipsLamports,
         };
 
-        // TODO: make not blocking async by crone
         const swapAmount = tradeInfo.trigger.txAmount;
 
         await sendCustomBundle({
@@ -125,10 +112,10 @@ const sendCustomBundle = async (args: SendCustomBundleArgs<any>) => {
 
                 console.log(
                     'Bundle status:',
-                    JSON.stringify(inflightStatus, null, 2),
+                    JSON.stringify(inflightStatus.result, null, 2),
                 );
             } catch (error) {
-                console.log('429');
+                console.log('Jito RPC error 429');
             }
         }, 5000);
     } catch (error) {

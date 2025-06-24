@@ -6,9 +6,9 @@ import { Unsubscribe } from 'nanoevents';
 
 dotenv.config();
 
-const config = getConfig();
-
 const main = async () => {
+    const config = getConfig();
+
     let unsubEvents: Unsubscribe = () => {};
     try {
         unsubEvents = (await jito.init({ config })) as Unsubscribe;

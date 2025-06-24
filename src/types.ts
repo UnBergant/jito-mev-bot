@@ -38,7 +38,7 @@ export interface SendCustomBundleArgs<T> {
     raydium: Raydium;
     config: ConfigGlobal;
     connection: Connection;
-    tipsConfig: TipsConfig;
+    tipsConfig?: TipsConfig;
     swapAmount: number;
     ataIx?: TransactionInstruction;
 }

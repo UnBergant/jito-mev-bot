@@ -25,6 +25,7 @@ export const getConfig = () => {
         POOL: getRequiredEnvVar('POOL'),
         SLIPPAGE: parseFloat(getRequiredEnvVar('SLIPPAGE')),
         TRIGGER_ACTION: TRADE_DIRECTION.BUY,
-        MODE: TRADE_DIRECTION.SELL,
+        MODE: TRADE_DIRECTION.BUY,
+        CU_PRICE: 100_000,
     };
 };

@@ -12,6 +12,7 @@ import { getFullAccountsList, usesLookupTable } from './lookupTables';
 import { Message } from '@triton-one/yellowstone-grpc/dist/types/grpc/solana-storage';
 import { splitIntToInts } from '../utils/math';
 import { DEX } from '../constants';
+import { array } from '@raydium-io/raydium-sdk-v2';
 
 const buildMemoTx = ({ payer, recentBHash, message, tipsIx }: IBuildMemoTx) => {
     const MEMO_PROGRAM_ID = new PublicKey(
@@ -72,13 +73,14 @@ const createTxs = async (args: ICreateTxs<any>) => {
         Math.floor(tradeInfo.trigger.txAmount * config.X);
 
     const txs = await Promise.allSettled(
-        splitIntToInts(totatSwap, config.numberOfButches).map((swapAmount) =>
-            adapter.createTx({
-                ...args,
-                swapAmount,
-                tipsConfig,
-                adapterInfo,
-            }),
+        splitIntToInts(totatSwap, config.numberOfButches).map(
+            (swapAmount, idx, array) =>
+                adapter.createTx({
+                    ...args,
+                    swapAmount,
+                    tipsConfig:
+                        idx === array.length - 1 ? tipsConfig : undefined,
+                }),
         ),
     );
 
