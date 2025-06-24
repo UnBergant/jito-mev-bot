@@ -4,7 +4,35 @@
 
 Отслеживает в реальном времени входящие swap-транзакции и отправляет bundle Jito с количеством `NUMBER_OF_BUTCHES` разбитые на случайную величину.
 
-Отправляет только один бандл для удобства отладки. Нужно убрать [флаг](https://github.com/UnBergant/jito-mev-bot/blob/22ba94dc1e4d6927622d7c96505141acaed878d1/src/streamReader/callbacks.ts#L27-L27) 
+Отправляет только один бандл для удобства тестирования. Нужно убрать [флаг](https://github.com/UnBergant/jito-mev-bot/blob/22ba94dc1e4d6927622d7c96505141acaed878d1/src/streamReader/callbacks.ts#L27-L27) 
+
+## 🚀 Установка и запуск
+
+### Выбор нужной версии Node.js:
+   ```bash
+   nvm use
+   ```
+### Установка зависимостей из package-lock.json
+  ```
+  npm ci
+  ```
+### Создание файла переменных окружения
+```
+cp .env.example .env
+```
+Заполнить .env своими значениями, описание ниже
+### Запуск
+```npm run start```
+
+### Все команды одним блоком
+```bash
+git clone https://github.com/your-repo/jito-sniper-bot.git
+cd jito-sniper-bot
+nvm use
+npm ci
+cp .env.example .env
+# Заполни .env своими ключами
+```
 
 ## ☝️ Уточнения
 На данный момент есть поддержка только Pumpfun пулов
@@ -21,18 +49,6 @@
 В некоторых пулах есть ошибка инициализации ATA wSOL:
 
 `Program log: AnchorError caused by account: user_quote_token_account. Error Code: AccountNotInitialized. Error Number: 3012. Error Message: The program expected this account to be already initialized`
-
-
-## 🚀 Запуск
-
-```bash
-git clone https://github.com/your-repo/jito-sniper-bot.git
-cd jito-sniper-bot
-nvm use
-npm ci
-cp .env.example .env
-# Заполни .env своими ключами
-```
 
 ## ⚙️ Переменные окружения (.env) читаются в файл config
 
