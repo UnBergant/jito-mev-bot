@@ -11,6 +11,7 @@ import { dexAdapters, getDexAdapter } from '../dexAdapters';
 import { getFullAccountsList, usesLookupTable } from './lookupTables';
 import { Message } from '@triton-one/yellowstone-grpc/dist/types/grpc/solana-storage';
 import { splitIntToInts } from '../utils/math';
+import { DEX } from '../constants';
 
 const buildMemoTx = ({ payer, recentBHash, message, tipsIx }: IBuildMemoTx) => {
     const MEMO_PROGRAM_ID = new PublicKey(
@@ -57,9 +58,10 @@ const createTxs = async (args: ICreateTxs<any>) => {
     const message = tradeInfo.trigger.tx.transaction?.transaction
         ?.message as Message;
 
-    // maybe there is a way to avoid this request. Made to check ProgramAddress
-    const fullAccountList = await getFullAccountsList(message, connection);
-    const adapter = getDexAdapter(fullAccountList);
+    // Maybe, there is a way to avoid this request. It is made to check Program Pool Address
+    // const fullAccountList = await getFullAccountsList(message, connection);
+    // const adapter = getDexAdapter(fullAccountList);
+    const adapter = dexAdapters[DEX.PUMP_FUN];
 
     if (!adapter) {
         throw new Error('❗ No adapter found');
@@ -70,7 +72,7 @@ const createTxs = async (args: ICreateTxs<any>) => {
         Math.floor(tradeInfo.trigger.txAmount * config.X);
 
     const txs = await Promise.allSettled(
-        splitIntToInts(totatSwap, 3).map((swapAmount) =>
+        splitIntToInts(totatSwap, config.numberOfButches).map((swapAmount) =>
             adapter.createTx({
                 ...args,
                 swapAmount,

@@ -33,14 +33,12 @@ export const init = async ({ config }: IJitoInit) => {
     // const searcherClient = searcher.searcherClient(config.jitoBlockEngineUrl);
     // const currentLeader = await waitForJitoLeader(searcherClient);
     console.log('📦 Jito is initialized');
-    // to support async actions and module logic
 
     const raydium = await Raydium.load({
         connection,
         owner: payer,
     });
 
-    //
     // const poolInfo = await raydium.liquidity.getPoolInfoFromRpc({
     //     poolId: new PublicKey(config.POOL).toBase58(),
     // });
@@ -52,9 +50,11 @@ export const init = async ({ config }: IJitoInit) => {
     const ataInfo = await connection.getAccountInfo(wsolAta);
     console.log('ATA:', ataInfo);
 
+    const recentBHash = await connection.getLatestBlockhash('confirmed');
+
     return emitter.on(EVENT.TRADE_TRIGGERED, async (tradeInfo) => {
         console.log('✅ TRIGGERED:', tradeInfo);
-        // TODO: check tips asynchronously
+        // TODO: check tips asynchronously by chron
         const tipsLamports = Math.ceil(
             tipsPercentiles.ema_landed_tips_50th_percentile *
                 LAMPORTS_PER_SOL *
@@ -66,8 +66,7 @@ export const init = async ({ config }: IJitoInit) => {
             tipsLamports: tipsLamports,
         };
 
-        // TODO: make not blocking async
-        const recentBHash = await connection.getLatestBlockhash('confirmed');
+        // TODO: make not blocking async by crone
         const swapAmount = tradeInfo.trigger.txAmount;
 
         await sendCustomBundle({

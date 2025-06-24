@@ -14,6 +14,7 @@ export const dexAdapters = {
 };
 
 export const getDexAdapter = (fullAccountList: PublicKey[]) => {
+    // It is not the best solution. Better to choose adapter with if to have direct access
     const dexAdapter = Object.values(dexAdapters).find(({ matchDexAddress }) =>
         matchDexAddress(fullAccountList),
     );

@@ -21,3 +21,5 @@ export enum TRADE_DIRECTION {
     SELL = 'sell',
     BUY = 'buy',
 }
+
+export const CU_PRICE = 50_000;

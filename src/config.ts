@@ -17,11 +17,13 @@ export const getConfig = () => {
         heliusApiKey: getRequiredEnvVar('HELIUS_API_KEY'),
         bundleTransactionLimit: parseInt(
             getRequiredEnvVar('BUNDLE_TRANSACTION_LIMIT'),
-            5,
+            10,
         ),
+        numberOfButches: parseInt(getRequiredEnvVar('NUMBER_OF_BUTCHES'), 10),
         triggerSizeSol: parseFloat(getRequiredEnvVar('TRIGGERED_SIZE_SOL')), // SOL per transaction
         X: parseFloat(getRequiredEnvVar('X')), // sell proportion amount
         POOL: getRequiredEnvVar('POOL'),
+        SLIPPAGE: parseFloat(getRequiredEnvVar('SLIPPAGE')),
         TRIGGER_ACTION: TRADE_DIRECTION.BUY,
         MODE: TRADE_DIRECTION.SELL,
     };
