@@ -49,7 +49,7 @@ export const getTx = async (args: GetPFTxArgs) => {
 
     // For example create global context with value for this type of requests. Because it is +- the same result
     // let units = await getSimulationComputeUnits(connection, ixs, payerKey, []);
-    units = units ?? 1_400_000;
+    // units = units ?? 1_400_000;
     let units = 400_000;
 
     const unitsWithMargin = Math.ceil(units * 1.1);
