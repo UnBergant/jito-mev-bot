@@ -1,63 +1,59 @@
-import { IAdapter, ICreateTxs } from '../../types';
+import { CreateTxArgs, IAdapter } from '../../types';
 import { PublicKey } from '@solana/web3.js';
 import { DEX, DEX_TYPE } from '../../constants';
 import { getTx } from './tx';
 import {
-    AmmRpcData,
-    ComputeAmountOutParam,
+  AmmRpcData,
+  ComputeAmountOutParam,
 } from '@raydium-io/raydium-sdk-v2/lib/raydium/liquidity/type';
 import {
-    x as AmmV4Keys,
-    y as AmmV5Keys,
+  x as AmmV4Keys,
+  y as AmmV5Keys,
 } from '@raydium-io/raydium-sdk-v2/lib/api-7daf490d';
+import { state } from '../../state';
+import { promisifyTimeout } from '../../utils/promises';
 
 export type PumpFunPoolInfo = {
-    poolRpcData: AmmRpcData;
-    poolInfo: ComputeAmountOutParam['poolInfo'];
-    poolKeys: AmmV4Keys | AmmV5Keys;
+  poolRpcData: AmmRpcData;
+  poolInfo: ComputeAmountOutParam['poolInfo'];
+  poolKeys: AmmV4Keys | AmmV5Keys;
 };
 
-export interface ICreateTxsPumpFun extends ICreateTxs<PumpFunPoolInfo> {}
+export interface ICreateTxsPumpFun extends CreateTxArgs<PumpFunPoolInfo> {}
 
 const createTx = async (args: ICreateTxsPumpFun) => {
-    const {
-        tradeInfo: { POOL },
-        config,
-        tipsConfig,
-        payer,
-        connection,
-        recentBHash,
-        swapAmount,
-        ataIx,
-    } = args;
-    console.log(
-        `🔄 Create tx: ${DEX_TYPE[DEX.PUMP_FUN]} swapAmount: ${swapAmount}`,
-    );
+  const { sendTips, swapAmount } = args;
 
-    // TODO: delete hardcode
+  const { payer } = state;
 
-    const tx = await getTx({
-        recentBHash,
-        swapAmount,
-        payerKey: payer.publicKey,
-        tipsConfig,
-        connection,
-        poolKey: new PublicKey(POOL),
-        ataIx,
-        config,
-    });
-    tx.sign([payer]);
+  console.log(
+    `🔄 Create tx: ${DEX_TYPE[DEX.PUMP_FUN]} swapAmount: ${swapAmount}`,
+  );
 
-    return tx;
+  const tx = await getTx({
+    swapAmount,
+    sendTips,
+  });
+  tx.sign([payer]);
+
+  // const result = await state.connection.simulateTransaction(tx, {
+  //   sigVerify: true, // проверка подписи (по умолчанию false)
+  //   commitment: 'confirmed',
+  // });
+  // console.log(result);
+
+  // await promisifyTimeout(100000);
+
+  return tx;
 };
 
 const matchDexAddress = (fullAccountList: PublicKey[]) => {
-    return fullAccountList.find((pubkey) => pubkey.toBase58() === DEX.PUMP_FUN);
+  return fullAccountList.find((pubkey) => pubkey.toBase58() === DEX.PUMP_FUN);
 };
 
 export default {
-    createTx,
-    matchDexAddress,
-    contractAddress: DEX.PUMP_FUN,
-    type: DEX_TYPE[DEX.PUMP_FUN],
+  createTx,
+  matchDexAddress,
+  contractAddress: DEX.PUMP_FUN,
+  type: DEX_TYPE[DEX.PUMP_FUN],
 } as IAdapter<ICreateTxsPumpFun>;

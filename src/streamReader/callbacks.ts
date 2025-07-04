@@ -4,6 +4,7 @@ import { ConfigGlobal } from '../types';
 import { emitter, EVENT } from '../eventBus';
 import { getTradeInfo, getTxInfo } from './tx';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { state } from '../state';
 
 let running = false;
 
@@ -23,7 +24,8 @@ export const trigger = ({
     return action === config.TRIGGER_ACTION && amount && amount >= triggerSize;
 };
 
-export const getHeliusCallbacks = (config: ConfigGlobal) => {
+export const getHeliusCallbacks = () => {
+    const config = state.config;
     const onData = async (data: SubscribeUpdate) => {
         if (running) return;
         console.log('------------------------');
@@ -48,6 +50,8 @@ export const getHeliusCallbacks = (config: ConfigGlobal) => {
                 );
 
                 const tradeInfo = getTradeInfo({ txInfo, config });
+
+                state.transaction$.next(tradeInfo);
 
                 // to support async actions and module logic
                 emitter.emit(EVENT.TRADE_TRIGGERED, tradeInfo);

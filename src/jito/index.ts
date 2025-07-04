@@ -1,124 +1,89 @@
-import { JitoJsonRpcClient } from 'jito-js-rpc';
 import { createTxs } from './txs';
-import {
-    Connection,
-    Keypair,
-    LAMPORTS_PER_SOL,
-    PublicKey,
-} from '@solana/web3.js';
-import { ConfigGlobal, SendCustomBundleArgs, TipsConfig } from '../types';
-import { emitter, EVENT } from '../eventBus';
-import bs58 from 'bs58';
-import { getTipsAmount } from './tips';
+import { initAndStartPollingTips } from './tips';
 import { Raydium } from '@raydium-io/raydium-sdk-v2';
 import { promisifyTimeout } from '../utils/promises';
-import { getAssociatedTokenAddress, NATIVE_MINT } from '@solana/spl-token';
+import { state } from '../state';
+import { filter, take } from 'rxjs';
+import { startPoolingLatestBlockhash } from '../utils/tx';
 
-interface IJitoInit {
-    config: ConfigGlobal;
-}
+export const init = async () => {
+  const { payer, connection } = state;
 
-export const init = async ({ config }: IJitoInit) => {
-    const payer = Keypair.fromSecretKey(bs58.decode(config.privateKey));
-    const connection = new Connection(config.rpcUrl, 'confirmed');
+  await initAndStartPollingTips(10_000);
+  await startPoolingLatestBlockhash(5_000);
 
-    const jClient = new JitoJsonRpcClient(config.jitoRpcUrl);
+  console.log('📊 Pool:', state.config.POOL);
+  console.log('📊 Payer:', payer.publicKey.toBase58());
+  console.log('📊 Tips:', state.tips$.value.percentiles);
 
-    const tipsPercentiles = await getTipsAmount();
-    console.log('📊 Pool:', config.POOL);
-    console.log('📊 Payer:', payer.publicKey.toBase58());
-    console.log('📊 Tips:', tipsPercentiles);
+  // To avoid sending transactions in wrong slot. But higher rate limits are needed
+  // const searcherClient = searcher.searcherClient(config.jitoBlockEngineUrl);
+  // const currentLeader = await waitForJitoLeader(searcherClient);
+  console.log('📦 Jito is initialized');
 
-    // To avoid sending transactions in wrong slot. But higher rate limits are needed
-    // const searcherClient = searcher.searcherClient(config.jitoBlockEngineUrl);
-    // const currentLeader = await waitForJitoLeader(searcherClient);
-    console.log('📦 Jito is initialized');
+  const raydium = await Raydium.load({
+    connection,
+    owner: payer.publicKey,
+  });
 
-    const raydium = await Raydium.load({
-        connection,
-        owner: payer,
-    });
+  // TODO: make not blocking async by crone
 
-    // TODO: make not blocking async by crone
-    const recentBHash = await connection.getLatestBlockhash('confirmed');
-
-    return emitter.on(EVENT.TRADE_TRIGGERED, async (tradeInfo) => {
-        console.log('✅ TRIGGERED:', tradeInfo);
-        // TODO: check tips asynchronously by chron
-        const tipsLamports = Math.ceil(
-            tipsPercentiles.landed_tips_95th_percentile * LAMPORTS_PER_SOL,
-        );
-
-        const tipsConfig: TipsConfig = {
-            tipsKey: new PublicKey(config.jitoTipsAddress),
-            tipsLamports: tipsLamports,
-        };
-
-        const swapAmount = tradeInfo.trigger.txAmount;
-
-        await sendCustomBundle({
-            payer,
-            recentBHash,
-            jClient,
-            tradeInfo,
-            tipsConfig,
-            raydium,
-            config,
-            connection,
-            swapAmount,
-            adapterInfo: {},
-        });
+  return state.transaction$
+    .pipe(
+      filter((tradeTrigger) => tradeTrigger !== null), // отфильтровываем null
+      take(1), // только первое значение
+    )
+    .subscribe((tradeTrigger) => {
+      sendCustomBundle();
     });
 };
 
-const sendCustomBundle = async (args: SendCustomBundleArgs<any>) => {
-    const { jClient } = args;
+const sendCustomBundle = async () => {
+  const { jClient } = state;
 
-    const txs = await createTxs(args);
+  const txs = await createTxs();
 
-    if (!txs) {
-        return;
+  if (!txs) {
+    return;
+  }
+
+  console.log('🛫 TX to send:', txs);
+  try {
+    const callJClient = async () => {
+      try {
+        console.log('📞 call JClient');
+        return await jClient.sendBundle([txs, { encoding: 'base64' }]);
+      } catch (error) {
+        console.log(error);
+        // await promisifyTimeout(10000);
+        // return callJClient();
+      }
+    };
+    const result = await callJClient();
+
+    if (!result?.result) {
+      throw result?.error ?? new Error('😬 sendBundle error'); // TODO: error handling
     }
+    console.log(
+      '📦 Send bundle resp:',
+      `https://explorer.jito.wtf/bundle-explorer?searchTerm=${result.result}&filter=Bundle`,
+      result,
+    );
+    const bundleId = result.result;
+    await promisifyTimeout(4000);
+    const intervalId = setInterval(async () => {
+      try {
+        const inflightStatus = await jClient.getBundleStatuses([[bundleId]]);
 
-    console.log('🛫 TX to send:', txs);
-    try {
-        const callJClient = async () => {
-            try {
-                console.log('call JClient');
-                return await jClient.sendBundle([txs, { encoding: 'base64' }]);
-            } catch (error) {
-                console.log(error);
-                await promisifyTimeout(10000);
-                return callJClient();
-            }
-        };
-        const result = await callJClient();
-
-        if (!result.result) {
-            throw result.error ?? new Error('sendBundle error'); // TODO: error handling
-        }
         console.log(
-            '📦 Send bundle resp:',
-            `https://explorer.jito.wtf/bundle-explorer?searchTerm=${result.result}&filter=Bundle`,
-            result,
+          'Bundle status:',
+          JSON.stringify(inflightStatus.result, null, 2),
         );
-        const bundleId = result.result;
-        await promisifyTimeout(4000);
-        const intervalId = setInterval(async () => {
-            try {
-                const inflightStatus = await jClient.getBundleStatuses([
-                    [bundleId],
-                ]);
-
-                console.log(
-                    'Bundle status:',
-                    JSON.stringify(inflightStatus.result, null, 2),
-                );
-            } catch (error) {
-                console.log('Jito RPC error 429');
-            }
-        }, 5000);
-    } catch (error) {
-        console.log(`Send custom bundle error: ${error}`);
-    }
+      } catch (error) {
+        console.log('Jito RPC error 429');
+      }
+    }, 5000);
+  } catch (error) {
+    console.log(`Send custom bundle error: ${error}`);
+  }
 };

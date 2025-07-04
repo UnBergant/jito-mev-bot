@@ -3,7 +3,7 @@ import raydiumStandartAmm from './raydiumStandartAmm';
 import raydiumLegacyAmmV4 from './raydiumLegacyAmmV4';
 import pumpFun from './pumpFun';
 
-import { TradeInfo } from '../types';
+import { TradeTriggerInfo } from '../types';
 import { usesLookupTable } from '../jito/lookupTables';
 import { PublicKey } from '@solana/web3.js';
 

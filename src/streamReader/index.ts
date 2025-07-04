@@ -1,21 +1,21 @@
 import { subscribe, LaserstreamConfig } from 'helius-laserstream';
-import { ISetupSubscriptions } from '../types';
 import { getRequestConfig } from './requestConfig';
 import { getHeliusCallbacks } from './callbacks';
+import { state } from '../state';
 
-async function setupSubscriptions({ config }: ISetupSubscriptions) {
-    const { heliusEndpoint, heliusApiKey } = config;
-    const streamConfig: LaserstreamConfig = {
-        apiKey: heliusApiKey,
-        endpoint: heliusEndpoint,
-    };
+async function setupSubscriptions() {
+  const { heliusEndpoint, heliusApiKey, POOL } = state.config;
+  const streamConfig: LaserstreamConfig = {
+    apiKey: heliusApiKey,
+    endpoint: heliusEndpoint,
+  };
 
-    const requestConfig = getRequestConfig(config);
+  const requestConfig = getRequestConfig(POOL);
 
-    const { onData, onError } = getHeliusCallbacks(config);
+  const { onData, onError } = getHeliusCallbacks();
 
-    await subscribe(streamConfig, requestConfig, onData, onError);
-    console.log('👀 StreamReader initialized');
+  await subscribe(streamConfig, requestConfig, onData, onError);
+  console.log('👀 StreamReader initialized');
 }
 
 export { setupSubscriptions };

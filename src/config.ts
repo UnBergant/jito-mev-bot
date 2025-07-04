@@ -1,4 +1,7 @@
 import { TRADE_DIRECTION } from './constants';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const getRequiredEnvVar = (key: string): string => {
     const value = process.env[key];
