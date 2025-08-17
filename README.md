@@ -1,15 +1,14 @@
-# 🎯 Jito Sniper Bot
+0) Предпосылки
 
-Бот для снайпа транзакций в Solana с использованием Jito MEV и потока Laserstream от Helius.
+Токен GitHub (fine-grained PAT) с правами на конкретный репозиторий:
 
-Отслеживает в реальном времени входящие swap-транзакции и отправляет bundle Jito с количеством `NUMBER_OF_BUTCHES` разбитые на случайную величину.
+Repository permissions: Metadata: Read, Contents: Read, Pull requests: Read & write, Webhooks: Read & write.
 
-Направление торговли и триггер настраивается в конфигурационном файле config.ts
-в корне проекта. В этот файл включены переменные из .env, в которых так же задаются
-конфигурационные параметры. Параметры описаны ниже в документации.
+Аккаунт имеет роль Admin на репо (чтобы создать вебхук).
 
-Отправляет только один бандл для удобства тестирования. Нужно убрать [флаг](https://github.com/UnBergant/jito-mev-bot/blob/22ba94dc1e4d6927622d7c96505141acaed878d1/src/streamReader/callbacks.ts#L27-L27) 
+Ключ OpenAI (или другой LLM).
 
+n8n доступен по HTTPS (в Settings задан N8N_WEBHOOK_URL) и Workflow активирован.
 ## 🚀 Установка и запуск
 
 ### Выбор нужной версии Node.js:
