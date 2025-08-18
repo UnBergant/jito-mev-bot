@@ -3,6 +3,8 @@ dist/
 build/
 
 
+
+
 Я вижу, у тебя в JSON-ответе от GitHub на запрос GET /pulls/{number}/files есть несколько полезных полей:
 
 "filename" → это путь к файлу в репозитории (например: "src/components/Button.tsx")
